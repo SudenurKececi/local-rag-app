@@ -1,0 +1,5 @@
+foundry-local-sdk
+pdfplumber
+python-docx
+numpy
+streamlit
