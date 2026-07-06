@@ -1,0 +1,10 @@
+Microsoft Foundry Local, kullanıcının kendi cihazında büyük dil modellerini 
+çalıştırmasını sağlayan bir araçtır. İnternet bağlantısı gerektirmez.
+GPU veya CPU üzerinde çalışabilir. Python SDK ile kolayca entegre edilebilir.
+
+RAG (Retrieval-Augmented Generation), dil modellerine harici belgelerden 
+bağlam sağlayan bir tekniktir. Bu sayede model, eğitim verisinin dışındaki 
+konularda da doğru cevaplar verebilir. Halüsinasyon oranını düşürür.
+
+SQLite, sunucusuz çalışan hafif bir veritabanıdır. Tek bir dosyada tüm 
+veriyi saklar. Python'da sqlite3 modülü ile direkt kullanılabilir.
