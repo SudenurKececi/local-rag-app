@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Asistanı</title>
+<style>
+:root{--bg:#F0F4F9;--sidebar:#FFFFFF;--border:#E2E8F0;--card:#FFFFFF;--text:#1A202C;--text2:#718096;--text3:#A0AEC0;--accent:#0078D4;--accent2:#005A9E;--accent-glow:rgba(0,120,212,.15);--accent-soft:#EBF5FB;--user-from:#0078D4;--user-to:#00BCF2;--asst:#FFFFFF;--asst-border:#E2E8F0;--asst-shadow:0 2px 16px rgba(0,0,0,.07);--input:#FFFFFF;--input-brd:#CBD5E0;--hover:#F7FAFC;--tag:#EBF5FB;--tag-txt:#0078D4;--scroll:#CBD5E0;--toggle:#CBD5E0;--stat:#F0F4F9}
+[data-theme="dark"]{--bg:#0E0E16;--sidebar:#161622;--border:#252538;--card:#1C1C2E;--text:#E2E8F0;--text2:#94A3B8;--text3:#64748B;--accent:#38A3FF;--accent2:#0078D4;--accent-glow:rgba(56,163,255,.18);--accent-soft:#172033;--user-from:#1565C0;--user-to:#0D47A1;--asst:#1C1C2E;--asst-border:#252538;--asst-shadow:0 2px 20px rgba(0,0,0,.4);--input:#1C1C2E;--input-brd:#252538;--hover:#1C1C2E;--tag:#172033;--tag-txt:#38A3FF;--scroll:#252538;--toggle:#252538;--stat:#13131F}
+*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%;overflow:hidden}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);transition:background .3s,color .3s}
+.app{display:flex;height:100vh}
+aside{width:272px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;transition:background .3s,border-color .3s}
+.sb-top{padding:22px 18px 18px;border-bottom:1px solid var(--border)}
+.logo{display:flex;align-items:center;gap:11px;margin-bottom:16px}
+.logo-icon{width:40px;height:40px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#0078D4,#00BCF2);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(0,120,212,.35)}
+.logo-name{font-size:15px;font-weight:700;line-height:1.2}
+.logo-sub{font-size:11px;color:var(--text3)}
+.new-btn{width:100%;padding:10px 0;background:linear-gradient(135deg,#0078D4,#00BCF2);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s,transform .2s,box-shadow .2s;font-family:inherit}
+.new-btn:hover{opacity:.92;transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,120,212,.35)}
+.sb-body{flex:1;padding:14px 12px;overflow-y:auto}
+.sb-label{font-size:10.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--text3);padding:0 6px;margin:6px 0 8px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.stat{background:var(--stat);border-radius:10px;padding:12px 10px;text-align:center;border:1px solid var(--border)}
+.stat-n{font-size:24px;font-weight:800;color:var(--accent)}
+.stat-l{font-size:11px;color:var(--text3);margin-top:2px}
+.info-card{background:var(--stat);border-radius:10px;border:1px solid var(--border);overflow:hidden;margin-bottom:16px}
+.info-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;font-size:12.5px}
+.info-row:not(:last-child){border-bottom:1px solid var(--border)}
+.info-key{color:var(--text3)}
+.info-val{background:var(--tag);color:var(--tag-txt);font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:6px}
+.setting{display:flex;align-items:center;justify-content:space-between;padding:10px 8px;border-radius:9px;cursor:pointer;transition:background .15s}
+.setting:hover{background:var(--hover)}
+.setting-left{display:flex;align-items:center;gap:10px;font-size:13.5px}
+.s-icon{font-size:16px;width:20px;text-align:center}
+.tgl{position:relative;width:42px;height:23px;flex-shrink:0}
+.tgl input{opacity:0;width:0;height:0}
+.tgl-track{position:absolute;inset:0;background:var(--toggle);border-radius:23px;cursor:pointer;transition:.3s}
+.tgl-track:before{content:'';position:absolute;width:17px;height:17px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+input:checked+.tgl-track{background:var(--accent)}
+input:checked+.tgl-track:before{transform:translateX(19px)}
+.sb-foot{padding:14px 12px;border-top:1px solid var(--border)}
+.clear-btn{width:100%;padding:10px 0;background:transparent;color:#E53E3E;border:1.5px solid #E53E3E;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s,transform .2s;font-family:inherit}
+.clear-btn:hover{background:rgba(229,62,62,.08);transform:translateY(-1px)}
+main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:var(--sidebar);border-bottom:1px solid var(--border);flex-shrink:0;transition:background .3s}
+.top-title{font-size:18px;font-weight:700}
+.top-badges{display:flex;align-items:center;gap:10px}
+.badge{background:var(--tag);color:var(--tag-txt);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px}
+.pulse{width:9px;height:9px;background:#22C55E;border-radius:50%;box-shadow:0 0 0 3px rgba(34,197,94,.2);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(34,197,94,.2)}50%{box-shadow:0 0 0 7px rgba(34,197,94,.07)}}
+.chat{flex:1;overflow-y:auto;padding:32px 36px;display:flex;flex-direction:column;gap:22px;scroll-behavior:smooth}
+.chat::-webkit-scrollbar{width:5px}
+.chat::-webkit-scrollbar-track{background:transparent}
+.chat::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:3px}
+.welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;animation:fadeUp .5s ease}
+.w-icon{width:80px;height:80px;border-radius:24px;background:linear-gradient(135deg,#0078D4,#00BCF2);display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:22px;box-shadow:0 12px 40px rgba(0,120,212,.3)}
+.welcome h2{font-size:28px;font-weight:800;margin-bottom:10px}
+.welcome p{font-size:15px;color:var(--text2);max-width:400px;line-height:1.7}
+.chips{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin-top:26px}
+.chip{background:var(--card);border:1.5px solid var(--border);color:var(--text2);padding:9px 18px;border-radius:22px;font-size:13px;cursor:pointer;transition:all .2s;font-family:inherit}
+.chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.msg{display:flex;gap:12px;animation:fadeUp .3s ease;max-width:800px}
+.msg.user{flex-direction:row-reverse;align-self:flex-end}
+.msg.asst{align-self:flex-start}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.av{width:36px;height:36px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px;margin-top:2px}
+.av.u{background:linear-gradient(135deg,#0078D4,#00BCF2)}
+.av.a{background:linear-gradient(135deg,#7C3AED,#4F46E5)}
+.bubble-wrap{display:flex;flex-direction:column;max-width:640px}
+.bubble{padding:13px 18px;border-radius:16px;font-size:14.5px;line-height:1.7}
+.bubble.u{background:linear-gradient(135deg,var(--user-from),var(--user-to));color:#fff;border-radius:16px 4px 16px 16px}
+.bubble.a{background:var(--asst);color:var(--text);border:1px solid var(--asst-border);border-radius:4px 16px 16px 16px;box-shadow:var(--asst-shadow)}
+.src-toggle{margin-top:8px;align-self:flex-start;background:none;border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--accent);cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .2s;font-family:inherit}
+.src-toggle:hover{background:var(--accent-soft)}
+.src-list{margin-top:6px;padding:10px 14px;background:var(--stat);border-radius:8px;border:1px solid var(--border);display:none}
+.src-list.open{display:block}
+.src-item{font-size:12.5px;color:var(--text2);padding:3px 0;display:flex;align-items:center;gap:7px}
+.typing-bub{background:var(--asst);border:1px solid var(--asst-border);border-radius:4px 16px 16px 16px;padding:16px 20px;box-shadow:var(--asst-shadow);display:flex;align-items:center;gap:6px}
+.dot{width:7px;height:7px;background:var(--accent);border-radius:50%;animation:bounce 1.4s infinite ease-in-out}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-7px);opacity:1}}
+.input-area{padding:18px 28px 22px;background:var(--sidebar);border-top:1px solid var(--border);flex-shrink:0;transition:background .3s}
+.input-box{display:flex;align-items:flex-end;gap:12px;background:var(--input);border:2px solid var(--input-brd);border-radius:16px;padding:13px 16px;transition:border-color .2s,box-shadow .2s}
+.input-box:focus-within{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-glow)}
+textarea{flex:1;border:none;outline:none;background:transparent;color:var(--text);font-size:15px;resize:none;line-height:1.55;max-height:130px;min-height:24px;font-family:inherit}
+textarea::placeholder{color:var(--text3)}
+.send{width:42px;height:42px;flex-shrink:0;background:linear-gradient(135deg,#0078D4,#00BCF2);border:none;border-radius:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s,opacity .2s}
+.send:hover{transform:scale(1.06);box-shadow:0 5px 16px rgba(0,120,212,.4)}
+.send:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.send svg{width:18px;height:18px;fill:#fff}
+.hint{font-size:12px;color:var(--text3);text-align:center;margin-top:9px}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <div class="sb-top">
+    <div class="logo">
+      <div class="logo-icon">🤖</div>
+      <div><div class="logo-name">RAG Asistanı</div><div class="logo-sub">Microsoft Foundry Local</div></div>
+    </div>
+    <button class="new-btn" onclick="clearChat()">✦ &nbsp;Yeni Sohbet</button>
+  </div>
+  <div class="sb-body">
+    <div class="sb-label">Oturum</div>
+    <div class="stats">
+      <div class="stat"><div class="stat-n" id="sMsg">0</div><div class="stat-l">Mesaj</div></div>
+      <div class="stat"><div class="stat-n" id="sQ">0</div><div class="stat-l">Soru</div></div>
+    </div>
+    <div class="sb-label">Model</div>
+    <div class="info-card">
+      <div class="info-row"><span class="info-key">LLM</span><span class="info-val">phi-3.5-mini</span></div>
+      <div class="info-row"><span class="info-key">Embedding</span><span class="info-val">multilingual</span></div>
+      <div class="info-row"><span class="info-key">Veritabanı</span><span class="info-val">SQLite</span></div>
+    </div>
+    <div class="sb-label">Ayarlar</div>
+    <div class="setting" onclick="toggleDark()">
+      <div class="setting-left"><span class="s-icon" id="thIco">🌙</span><span id="thLbl">Karanlık Mod</span></div>
+      <label class="tgl" onclick="event.stopPropagation()">
+        <input type="checkbox" id="dkTgl" onchange="toggleDark()">
+        <span class="tgl-track"></span>
+      </label>
+    </div>
+  </div>
+  <div class="sb-foot">
+    <button class="clear-btn" onclick="clearChat()">🗑️ &nbsp;Sohbeti Temizle</button>
+  </div>
+</aside>
+<main>
+  <div class="top-bar">
+    <div class="top-title">Yerel RAG Asistanı</div>
+    <div class="top-badges">
+      <div class="pulse"></div>
+      <div class="badge">⚡ Çevrimdışı</div>
+      <div class="badge">🔒 Gizli</div>
+    </div>
+  </div>
+  <div class="chat" id="chat">
+    <div class="welcome" id="welcome">
+      <div class="w-icon">🤖</div>
+      <h2>Merhaba! 👋</h2>
+      <p>Yüklenen belgeleriniz hakkında soru sorabilirsiniz.<br>Her şey tamamen yerel — internet yok, bulut yok.</p>
+      <div class="chips">
+        <button class="chip" onclick="useChip(this)">Foundry Local nedir?</button>
+        <button class="chip" onclick="useChip(this)">RAG nasıl çalışır?</button>
+        <button class="chip" onclick="useChip(this)">SQLite ne işe yarar?</button>
+      </div>
+    </div>
+  </div>
+  <div class="input-area">
+    <div class="input-box">
+      <textarea id="inp" placeholder="Sorunuzu yazın..." rows="1" onkeydown="onKey(event)" oninput="resize(this)"></textarea>
+      <button class="send" id="sendBtn" onclick="send()">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+    <div class="hint">Enter → gönder &nbsp;·&nbsp; Shift+Enter → yeni satır</div>
+  </div>
+</main>
+</div>
+<script>
+let msgs=0,qs=0,dark=false;
+function toggleDark(){dark=!dark;document.documentElement.setAttribute('data-theme',dark?'dark':'light');document.getElementById('dkTgl').checked=dark;document.getElementById('thIco').textContent=dark?'☀️':'🌙';document.getElementById('thLbl').textContent=dark?'Açık Mod':'Karanlık Mod'}
+function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}}
+function resize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,130)+'px'}
+function useChip(btn){document.getElementById('inp').value=btn.textContent;send()}
+function scrollBot(){const c=document.getElementById('chat');c.scrollTop=c.scrollHeight}
+function updateStats(){document.getElementById('sMsg').textContent=msgs;document.getElementById('sQ').textContent=qs}
+function clearChat(){const c=document.getElementById('chat');c.innerHTML=`<div class="welcome" id="welcome"><div class="w-icon">🤖</div><h2>Merhaba! 👋</h2><p>Yüklenen belgeleriniz hakkında soru sorabilirsiniz.<br>Her şey tamamen yerel — internet yok, bulut yok.</p><div class="chips"><button class="chip" onclick="useChip(this)">Foundry Local nedir?</button><button class="chip" onclick="useChip(this)">RAG nasıl çalışır?</button><button class="chip" onclick="useChip(this)">SQLite ne işe yarar?</button></div></div>`;msgs=0;qs=0;updateStats()}
+function toggleSrc(btn){const list=btn.nextElementSibling;const open=list.classList.toggle('open');btn.textContent=open?'▲ Kaynakları Gizle':'📄 Kaynakları Göster ('+btn.dataset.n+')'}
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>')}
+async function send(){
+  const inp=document.getElementById('inp');
+  const text=inp.value.trim();if(!text)return;
+  document.getElementById('welcome')?.remove();
+  inp.value='';inp.style.height='auto';
+  const chat=document.getElementById('chat'),btn=document.getElementById('sendBtn');
+  const uDiv=document.createElement('div');uDiv.className='msg user';
+  uDiv.innerHTML=`<div class="av u">👤</div><div class="bubble-wrap"><div class="bubble u">${esc(text)}</div></div>`;
+  chat.appendChild(uDiv);msgs++;qs++;updateStats();scrollBot();
+  const tDiv=document.createElement('div');tDiv.className='msg asst';tDiv.id='typing';
+  tDiv.innerHTML=`<div class="av a">🤖</div><div class="typing-bub"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  chat.appendChild(tDiv);scrollBot();btn.disabled=true;
+  try{
+    const res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});
+    const data=await res.json();
+    document.getElementById('typing')?.remove();
+    let srcHtml='';
+    if(data.sources&&data.sources.length){
+      const items=data.sources.map(s=>`<div class="src-item">📄 ${s}</div>`).join('');
+      srcHtml=`<button class="src-toggle" onclick="toggleSrc(this)" data-n="${data.sources.length}">📄 Kaynakları Göster (${data.sources.length})</button><div class="src-list">${items}</div>`;
+    }
+    const aDiv=document.createElement('div');aDiv.className='msg asst';
+    aDiv.innerHTML=`<div class="av a">🤖</div><div class="bubble-wrap"><div class="bubble a">${esc(data.answer)}</div>${srcHtml}</div>`;
+    chat.appendChild(aDiv);msgs++;updateStats();scrollBot();
+  }catch(e){
+    document.getElementById('typing')?.remove();
+    const eDiv=document.createElement('div');eDiv.className='msg asst';
+    eDiv.innerHTML=`<div class="av a">🤖</div><div class="bubble-wrap"><div class="bubble a" style="color:#E53E3E">⚠️ Bağlantı hatası. Foundry servisinin çalıştığından emin olun.</div></div>`;
+    chat.appendChild(eDiv);scrollBot();
+  }
+  btn.disabled=false;inp.focus();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+bios bip hata sesleri:
+
+1 bip = bellek hatası
+2 bip= bellek tanıma hatası
+3 bip= internet hatası
